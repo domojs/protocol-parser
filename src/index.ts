@@ -188,7 +188,7 @@ function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFram
             return buffer;
         case 'subFrame':
             value[desc.name] = {};
-            if (value[(desc as SubFrameDescription<any, any>).choose.discriminator] in (desc as SubFrameDescription<any, any>).choose.subFrame)
+            if (!(value[(desc as SubFrameDescription<any, any>).choose.discriminator] in (desc as SubFrameDescription<any, any>).choose.subFrame))
                 return buffer;
 
             buffer = (desc as SubFrameDescription<any, any>).choose.subFrame[value[(desc as SubFrameDescription<any, any>).choose.discriminator]].write(value[desc.name]);
