@@ -264,7 +264,7 @@ export class Frame<T>
 
     public write(message: T)
     {
-        if(this.prepare)
+        if (this.prepare)
             this.prepare(message);
         var buffers: Buffer[] = [];
         for (let frame of this.frame)
@@ -276,6 +276,8 @@ export class Frame<T>
             var length = frameTypeLength(type);
             let offset = 0;
             let buffer: Buffer;
+            if (frame.optional)
+                continue;
             if (length > -1)
             {
                 write(buffer = Buffer.alloc(length), message[frame.name], frame, this.frame, offset)
