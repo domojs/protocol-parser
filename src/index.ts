@@ -258,12 +258,14 @@ function read(buffer: Buffer, desc: FrameDescription<any>, offset: number, frame
 
 export class Frame<T>
 {
-    constructor(private frame: FrameDescription<T>[])
+    constructor(private frame: FrameDescription<T>[], private prepare?: (message: T) => void)
     {
     }
 
     public write(message: T)
     {
+        if(this.prepare)
+            this.prepare(message);
         var buffers: Buffer[] = [];
         for (let frame of this.frame)
         {
@@ -284,7 +286,6 @@ export class Frame<T>
 
             }
             buffers.push(buffer);
-
         }
         return Buffer.concat(buffers);
     }
@@ -339,7 +340,7 @@ export class Protocol<T>
         }
     }
 
-    public register<U={}>(name: keyof T, value: number, description: FrameDescription<U>[])
+    public register<U={}>(name: keyof T, value: number, description: FrameDescription<U>[], prepare?: (message: U) => void)
     {
         if (typeof (this.subFrameRegistration[name]) == 'undefined')
             throw new Error('No sub frame is registered for ' + name)
@@ -347,7 +348,7 @@ export class Protocol<T>
         if (typeof (this.subFrameRegistration[name].choose.subFrame[value]) != 'undefined')
             throw new Error(`A sub frame is already registered at ${name} for the value ${value}`);
 
-        this.subFrameRegistration[name].choose.subFrame[value] = new Frame<U>(description);
+        this.subFrameRegistration[name].choose.subFrame[value] = new Frame<U>(description, prepare);
     }
 
     public read(buffer: Buffer): T
