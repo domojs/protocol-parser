@@ -85,7 +85,7 @@ export function frameTypeLength(type: frameType)
 
 function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFrame: FrameDescription<any>[], offset: number = 0)
 {
-    debug(`writing ${value} from ${JSON.stringify(desc)}`);
+    log(`writing ${JSON.stringify(value)} from ${JSON.stringify(desc)}`);
 
     var type: frameType;
 
@@ -356,12 +356,17 @@ export class Protocol<T>
     public read(buffer: Buffer): T
     {
         var result: T = {} as any;
+        log(`reading ${buffer}`);
         this.frame.read(buffer, result, 0);
+        log(`read ${JSON.stringify(result)}`);
         return result;
     }
 
     public write(instance: T): Buffer
     {
-        return this.frame.write(instance);
+        log(`writing ${JSON.stringify(instance)}`);
+        var buffer = this.frame.write(instance);
+        log(`written ${buffer}`);
+        return buffer;
     }
 }
