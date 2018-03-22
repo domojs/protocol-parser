@@ -1,5 +1,6 @@
 import * as debug from 'debug'
 const log = debug('domojs:protocol-parser');
+const verboseLog = debug('domojs:protocol-parser:verbose');
 
 export type uint8 = number;
 export type uint16 = number;
@@ -85,7 +86,7 @@ export function frameTypeLength(type: frameType)
 
 function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFrame: FrameDescription<any>[], offset: number = 0)
 {
-    log(`writing ${JSON.stringify(value)} from ${JSON.stringify(desc)}`);
+    verboseLog(`writing ${JSON.stringify(value)} from ${JSON.stringify(desc)}`);
 
     var type: frameType;
 
