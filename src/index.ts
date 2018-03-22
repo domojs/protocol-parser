@@ -356,7 +356,7 @@ export class Protocol<T>
     public read(buffer: Buffer): T
     {
         var result: T = {} as any;
-        log(`reading ${buffer}`);
+        log(`reading ${buffer.toJSON().data}`);
         this.frame.read(buffer, result, 0);
         log(`read ${JSON.stringify(result)}`);
         return result;
@@ -366,7 +366,7 @@ export class Protocol<T>
     {
         log(`writing ${JSON.stringify(instance)}`);
         var buffer = this.frame.write(instance);
-        log(`written ${buffer}`);
+        log(`written ${buffer.toJSON().data}`);
         return buffer;
     }
 }
