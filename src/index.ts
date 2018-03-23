@@ -317,7 +317,7 @@ export class Frame<T>
                 {
                     length = frameTypeLength((frame as ComplexFrameDescription<T>).length as complexFrameType);
                     offset += length;
-                    length = <number>read(buffer, frame, offset - length, this.frame);
+                    length = <number>read(buffer, { type: (frame as ComplexFrameDescription<T>).length as complexFrameType, name: '' }, offset - length, this.frame);
                 }
                 else
                     length = instance[this.frame[(frame as ComplexFrameDescription<T>).length].name];
