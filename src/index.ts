@@ -309,7 +309,7 @@ export class Frame<T>
             else if (type == 'subFrame')
             {
                 instance[frame.name] = <any>{};
-                offset += (frame as SubFrameDescription<T, any>).choose.subFrame[instance[(frame as SubFrameDescription<T, any>).choose.discriminator] as any].read(buffer, <any>instance[frame.name], offset)
+                offset = (frame as SubFrameDescription<T, any>).choose.subFrame[instance[(frame as SubFrameDescription<T, any>).choose.discriminator] as any].read(buffer, <any>instance[frame.name], offset)
             }
             else
             {
