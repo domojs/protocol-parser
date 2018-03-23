@@ -314,12 +314,14 @@ export class Frame<T>
             else
             {
                 if (isNaN((frame as ComplexFrameDescription<T>).length as any))
+                {
                     length = frameTypeLength((frame as ComplexFrameDescription<T>).length as complexFrameType);
+                    offset += length;
+                    length = <number>read(buffer, frame, offset - length, this.frame);
+                }
                 else
                     length = instance[this.frame[(frame as ComplexFrameDescription<T>).length].name];
 
-                offset += length;
-                length = <number>read(buffer, frame, offset - length, this.frame);
                 instance[frame.name] = <any>read(buffer, frame, offset, this.frame, length);
                 offset += length;
             }
