@@ -12,7 +12,7 @@ export type int32 = number;
 export type float = number;
 export type double = number;
 
-export type simpleFrameType = 'uint8' | 'uint16' | 'uint32' | 'uint64';
+export type simpleFrameType = 'bit' | 'uint2' | 'uint3' | 'uint4' | 'uint5' | 'uint6' | 'uint7' | 'uint8' | 'uint16' | 'uint32' | 'uint64';
 export type complexFrameType = 'string' | 'buffer' | 'uint8[]' | 'uint16[]' | 'uint32[]' | 'uint64[]';;
 export type frameType = simpleFrameType | complexFrameType | 'subFrame' | 'subFrame[]';
 export type frameTypeGetter<T, U extends frameType> = ((instance: T, buffer?: Buffer) => U);
@@ -51,6 +51,14 @@ export interface SubFrameArrayDescription<T, U>
 
 export type FrameDescription<T> = SimpleFrameDescription<T> | ComplexFrameDescription<T> | SubFrameDescription<T, any> | SubFrameArrayDescription<T, any>;
 
+export function frameTypeLength(type: 'bit'): 0.125
+export function frameTypeLength(type: 'uint2'): 0.25
+export function frameTypeLength(type: 'uint3'): 0.375
+export function frameTypeLength(type: 'uint4'): 0.5
+export function frameTypeLength(type: 'uint5'): 0.625
+export function frameTypeLength(type: 'uint6'): 0.75
+export function frameTypeLength(type: 'uint7'): 0.875
+export function frameTypeLength(type: 'uint8'): 1
 export function frameTypeLength(type: 'uint8'): 1
 export function frameTypeLength(type: 'uint16'): 2
 export function frameTypeLength(type: 'uint32'): 4
@@ -62,6 +70,20 @@ export function frameTypeLength(type: frameType)
 {
     switch (type)
     {
+        case 'bit':
+            return 0.125;
+        case 'uint2':
+            return 0.25;
+        case 'uint3':
+            return 0.375;
+        case 'uint4':
+            return 0.5;
+        case 'uint5':
+            return 0.625;
+        case 'uint6':
+            return 0.75;
+        case 'uint7':
+            return 0.875;
         case 'uint8':
             return 1;
         case 'uint16':
@@ -104,6 +126,60 @@ function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFram
 
     switch (type)
     {
+        case 'bit':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            value = value && 1 || 0 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint2':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 6)
+                throw new Error('Not supported cross byte value');
+            value = value % 4 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint3':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 5)
+                throw new Error('Not supported cross byte value');
+            value = value % 8 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint4':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 4)
+                throw new Error('Not supported cross byte value');
+            value = value % 16 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint5':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 3)
+                throw new Error('Not supported cross byte value');
+            value = value % 32 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint6':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 2)
+                throw new Error('Not supported cross byte value');
+            value = value % 64 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
+        case 'uint7':
+            var currentValue = buffer.readUInt8(offset);
+            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            if (subByteOffset > 1)
+                throw new Error('Not supported cross byte value');
+            value = value % 128 << subByteOffset;
+            buffer.writeUInt8(currentValue | value, offset);
+            break;
         case 'uint8':
             buffer.writeUInt8(value, offset);
             break;
@@ -204,8 +280,122 @@ function read(buffer: Buffer, desc: FrameDescription<any>, offset: number, frame
 {
     try
     {
+        var subByteOffset = (offset - Math.floor(offset)) * 8;
+
         switch (desc.type)
         {
+            case 'bit':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b00000001;
+                    case 1:
+                        return b & 0b00000010;
+                    case 2:
+                        return b & 0b00000100;
+                    case 3:
+                        return b & 0b00001000;
+                    case 4:
+                        return b & 0b00010000;
+                    case 5:
+                        return b & 0b00100000;
+                    case 6:
+                        return b & 0b01000000;
+                    case 7:
+                        return b & 0b10000000;
+                }
+                break;
+            case 'uint2':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b00000011;
+                    case 1:
+                        return (b & 0b00000110) >> subByteOffset;
+                    case 2:
+                        return (b & 0b00001100) >> subByteOffset;
+                    case 3:
+                        return (b & 0b00011000) >> subByteOffset;
+                    case 4:
+                        return (b & 0b00110000) >> subByteOffset;
+                    case 5:
+                        return (b & 0b01100000) >> subByteOffset;
+                    case 6:
+                        return (b & 0b11000000) >> subByteOffset;
+                }
+                break;
+            case 'uint3':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return (b & 0b00000111);
+                    case 1:
+                        return (b & 0b00001110) >> subByteOffset;
+                    case 2:
+                        return (b & 0b00011100) >> subByteOffset;
+                    case 3:
+                        return (b & 0b00111000) >> subByteOffset;
+                    case 4:
+                        return (b & 0b01110000) >> subByteOffset;
+                    case 5:
+                        return (b & 0b11100000) >> subByteOffset;
+                }
+                break;
+            case 'uint4':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b00001111;
+                    case 1:
+                        return b & 0b00011110;
+                    case 2:
+                        return b & 0b00111100;
+                    case 3:
+                        return b & 0b01111000;
+                    case 4:
+                        return b & 0b11110000;
+                }
+                break;
+            case 'uint5':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b00011111;
+                    case 1:
+                        return b & 0b00111110;
+                    case 2:
+                        return b & 0b01111100;
+                    case 3:
+                        return b & 0b11111000;
+                }
+                break;
+            case 'uint6':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b00111111;
+                    case 1:
+                        return b & 0b01111110;
+                    case 2:
+                        return b & 0b11111100;
+                }
+                break;
+            case 'uint7':
+                var b = buffer.readUInt8(offset)
+                switch (subByteOffset)
+                {
+                    case 0:
+                        return b & 0b01111111;
+                    case 1:
+                        return b & 0b11111110;
+                }
+                break;
             case 'uint8':
                 return buffer.readUInt8(offset);
             case 'uint16':
@@ -235,7 +425,7 @@ function read(buffer: Buffer, desc: FrameDescription<any>, offset: number, frame
                 {
                     if (length > -1)
                     {
-                        result.push(read(buffer, { name: '', type: subType as simpleFrameType }, offset, frames));
+                        result.push(read(buffer, { name: '', type: subType as simpleFrameType }, offset, frames, 0));
                         offset += length;
                     }
                     else if (subType == 'subFrame')
@@ -291,7 +481,7 @@ export class Frame<T>
         }
         return Buffer.concat(buffers);
     }
-    public read(buffer: Buffer, instance: T, offset = 0)
+    public read(buffer: Buffer, instance: T, offset = 0, subByteOffset = 0)
     {
         // console.log(this.frame);
         for (var frame of this.frame)
@@ -303,7 +493,7 @@ export class Frame<T>
             var length = frameTypeLength(type);
             if (length > -1)
             {
-                instance[frame.name] = <any>read(buffer, frame, offset, this.frame);
+                instance[frame.name] = <any>read(buffer, frame, offset, this.frame, subByteOffset);
                 offset += length;
             }
             else if (type == 'subFrame')
@@ -317,7 +507,7 @@ export class Frame<T>
                 {
                     length = frameTypeLength((frame as ComplexFrameDescription<T>).length as complexFrameType);
                     offset += length;
-                    length = <number>read(buffer, { type: (frame as ComplexFrameDescription<T>).length as complexFrameType, name: '' }, offset - length, this.frame);
+                    length = <number>read(buffer, { type: (frame as ComplexFrameDescription<T>).length as complexFrameType, name: '' }, offset - length, this.frame, subByteOffset);
                 }
                 else
                     length = instance[this.frame[(frame as ComplexFrameDescription<T>).length].name];
@@ -332,7 +522,7 @@ export class Frame<T>
 
 export class Protocol<T>
 {
-    private subFrameRegistration: {[key in keyof T]: SubFrameDescription<T, any> } = {} as any;
+    private subFrameRegistration: { [key in keyof T]: SubFrameDescription<T, any> } = {} as any;
     private frame: Frame<T>;
 
     constructor(frames: FrameDescription<T>[])
