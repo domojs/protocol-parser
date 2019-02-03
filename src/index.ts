@@ -498,7 +498,7 @@ export class Frame<T>
                 {
                     buffer = Buffer.alloc(length)
                     write(buffer, message[frame.name], frame, this.frame, offset)
-                    offset += 0;
+                    offset = 0;
                 }
             }
             else
