@@ -488,7 +488,7 @@ export class Frame<T>
                 continue;
             if (length > -1)
             {
-                if (Math.ceil(length) == length + offset)
+                if (Math.ceil(length) != length + offset)
                 {
                     buffer = Buffer.alloc(Math.ceil(length))
                     write(buffer, message[frame.name], frame, this.frame, offset)
