@@ -475,6 +475,8 @@ export class Frame<T>
         if (this.prepare)
             this.prepare(message);
         var buffers: Buffer[] = [];
+        let offset = 0;
+        let buffer: Buffer;
         for (let frame of this.frame)
         {
             var type = frame.type;
@@ -482,20 +484,24 @@ export class Frame<T>
                 type = type(message);
 
             var length = frameTypeLength(type);
-            let offset = 0;
-            let buffer: Buffer;
             if (frame.optional)
                 continue;
             if (length > -1)
             {
-                write(buffer = Buffer.alloc(length), message[frame.name], frame, this.frame, offset)
+                if (Math.ceil(length) == length + offset)
+                {
+                    buffer = Buffer.alloc(Math.ceil(length))
+                }
+                write(buffer, message[frame.name], frame, this.frame, offset)
+                length += offset;
             }
             else
             {
                 buffer = write(null, message, frame, this.frame, offset);
-
             }
-            buffers.push(buffer);
+
+            if (buffers[buffer.length - 1] !== buffer)
+                buffers.push(buffer);
         }
         return Buffer.concat(buffers);
     }
