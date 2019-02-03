@@ -124,78 +124,84 @@ function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFram
         type = type.substring(0, type.indexOf('[')) + ']' as complexFrameType;
     }
 
+    var floorOffset = Math.floor(offset);
+    var subByteOffset = (offset - floorOffset) * 8;
+
     switch (type)
     {
         case 'bit':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             value = value && 1 || 0 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint2':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 6)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 4 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint3':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 5)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 8 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint4':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 4)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 16 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint5':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 3)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 32 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint6':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 2)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 64 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint7':
-            var currentValue = buffer.readUInt8(offset);
-            var subByteOffset = (offset - Math.floor(offset)) * 8;
+            var currentValue = buffer.readUInt8(floorOffset);
             if (subByteOffset > 1)
-                throw new Error('Not supported cross byte value');
+                throw new Error('Cross byte value are not supported');
             value = value % 128 << subByteOffset;
-            buffer.writeUInt8(currentValue | value, offset);
+            buffer.writeUInt8(currentValue | value, floorOffset);
             break;
         case 'uint8':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             buffer.writeUInt8(value, offset);
             break;
         case 'uint16':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             buffer.writeUInt16BE(value, offset);
             break;
         case 'uint32':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             buffer.writeUInt32BE(value, offset);
             break;
         case 'uint64':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             buffer.write(value, offset);
             break;
         case 'uint8[]':
         case 'uint16[]':
         case 'uint32[]':
         case 'uint64[]':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             if (typeof ((desc as ComplexFrameDescription<any>).length) != 'undefined')
             {
                 var length = (desc as ComplexFrameDescription<any>).length as simpleFrameType;
@@ -225,6 +231,8 @@ function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFram
             }
             throw new Error('Not supported');
         case 'subFrame[]':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             let buffers: Buffer[] = [];
             if (typeof ((desc as ComplexFrameDescription<any>).length) != 'undefined')
             {
@@ -240,6 +248,8 @@ function write(buffer: Buffer, value: any, desc: FrameDescription<any>, fullFram
             return Buffer.concat(buffers);
         case 'buffer':
         case 'string':
+            if (offset != floorOffset)
+                throw new Error('Cross byte value are not supported');
             if (typeof ((desc as ComplexFrameDescription<any>).length) != 'undefined')
             {
                 var length = (desc as ComplexFrameDescription<any>).length as simpleFrameType;
@@ -280,131 +290,135 @@ function read(buffer: Buffer, desc: FrameDescription<any>, offset: number, frame
 {
     try
     {
-        var subByteOffset = (offset - Math.floor(offset)) * 8;
+        var floorOffset = Math.floor(offset);
+        var currentValue = buffer.readUInt8(floorOffset);
+        var subByteOffset = (offset - floorOffset) * 8;
 
         switch (desc.type)
         {
             case 'bit':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b00000001;
+                        return currentValue & 0b00000001;
                     case 1:
-                        return b & 0b00000010;
+                        return currentValue & 0b00000010;
                     case 2:
-                        return b & 0b00000100;
+                        return currentValue & 0b00000100;
                     case 3:
-                        return b & 0b00001000;
+                        return currentValue & 0b00001000;
                     case 4:
-                        return b & 0b00010000;
+                        return currentValue & 0b00010000;
                     case 5:
-                        return b & 0b00100000;
+                        return currentValue & 0b00100000;
                     case 6:
-                        return b & 0b01000000;
+                        return currentValue & 0b01000000;
                     case 7:
-                        return b & 0b10000000;
+                        return currentValue & 0b10000000;
                 }
                 break;
             case 'uint2':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b00000011;
+                        return currentValue & 0b00000011;
                     case 1:
-                        return (b & 0b00000110) >> subByteOffset;
+                        return (currentValue & 0b00000110) >> subByteOffset;
                     case 2:
-                        return (b & 0b00001100) >> subByteOffset;
+                        return (currentValue & 0b00001100) >> subByteOffset;
                     case 3:
-                        return (b & 0b00011000) >> subByteOffset;
+                        return (currentValue & 0b00011000) >> subByteOffset;
                     case 4:
-                        return (b & 0b00110000) >> subByteOffset;
+                        return (currentValue & 0b00110000) >> subByteOffset;
                     case 5:
-                        return (b & 0b01100000) >> subByteOffset;
+                        return (currentValue & 0b01100000) >> subByteOffset;
                     case 6:
-                        return (b & 0b11000000) >> subByteOffset;
+                        return (currentValue & 0b11000000) >> subByteOffset;
                 }
                 break;
             case 'uint3':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return (b & 0b00000111);
+                        return (currentValue & 0b00000111);
                     case 1:
-                        return (b & 0b00001110) >> subByteOffset;
+                        return (currentValue & 0b00001110) >> subByteOffset;
                     case 2:
-                        return (b & 0b00011100) >> subByteOffset;
+                        return (currentValue & 0b00011100) >> subByteOffset;
                     case 3:
-                        return (b & 0b00111000) >> subByteOffset;
+                        return (currentValue & 0b00111000) >> subByteOffset;
                     case 4:
-                        return (b & 0b01110000) >> subByteOffset;
+                        return (currentValue & 0b01110000) >> subByteOffset;
                     case 5:
-                        return (b & 0b11100000) >> subByteOffset;
+                        return (currentValue & 0b11100000) >> subByteOffset;
                 }
                 break;
             case 'uint4':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b00001111;
+                        return currentValue & 0b00001111;
                     case 1:
-                        return b & 0b00011110;
+                        return currentValue & 0b00011110;
                     case 2:
-                        return b & 0b00111100;
+                        return currentValue & 0b00111100;
                     case 3:
-                        return b & 0b01111000;
+                        return currentValue & 0b01111000;
                     case 4:
-                        return b & 0b11110000;
+                        return currentValue & 0b11110000;
                 }
                 break;
             case 'uint5':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b00011111;
+                        return currentValue & 0b00011111;
                     case 1:
-                        return b & 0b00111110;
+                        return currentValue & 0b00111110;
                     case 2:
-                        return b & 0b01111100;
+                        return currentValue & 0b01111100;
                     case 3:
-                        return b & 0b11111000;
+                        return currentValue & 0b11111000;
                 }
                 break;
             case 'uint6':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b00111111;
+                        return currentValue & 0b00111111;
                     case 1:
-                        return b & 0b01111110;
+                        return currentValue & 0b01111110;
                     case 2:
-                        return b & 0b11111100;
+                        return currentValue & 0b11111100;
                 }
                 break;
             case 'uint7':
-                var b = buffer.readUInt8(offset)
                 switch (subByteOffset)
                 {
                     case 0:
-                        return b & 0b01111111;
+                        return currentValue & 0b01111111;
                     case 1:
-                        return b & 0b11111110;
+                        return currentValue & 0b11111110;
                 }
                 break;
             case 'uint8':
+                if (offset != floorOffset)
+                    throw new Error('Cross byte value are not supported');
+
                 return buffer.readUInt8(offset);
             case 'uint16':
+                if (offset != floorOffset)
+                    throw new Error('Cross byte value are not supported');
                 return buffer.readUInt16BE(offset);
             case 'uint32':
+                if (offset != floorOffset)
+                    throw new Error('Cross byte value are not supported');
                 return buffer.readUInt32BE(offset);
             case 'uint64':
             case 'buffer':
             case 'string':
+                if (offset != floorOffset)
+                    throw new Error('Cross byte value are not supported');
                 let value: Buffer;
                 if (typeof (length) != 'undefined')
                     value = buffer.slice(offset, offset + length);
@@ -418,6 +432,10 @@ function read(buffer: Buffer, desc: FrameDescription<any>, offset: number, frame
             case 'uint32[]':
             case 'uint64[]':
             case 'subFrame[]':
+                if (offset != floorOffset)
+                    throw new Error('Cross byte value are not supported');
+                if (desc.type instanceof Function)
+                    throw new Error('Not supported');
                 var subType = desc.type.substring(0, desc.type.indexOf('[')) as simpleFrameType | 'subFrame';
                 var subLength = frameTypeLength(subType);
                 var result = [];
@@ -509,8 +527,10 @@ export class Frame<T>
                     offset += length;
                     length = <number>read(buffer, { type: (frame as ComplexFrameDescription<T>).length as complexFrameType, name: '' }, offset - length, this.frame, subByteOffset);
                 }
-                else
+                else if ((frame as ComplexFrameDescription<T>).length > 0)
                     length = instance[this.frame[(frame as ComplexFrameDescription<T>).length].name];
+                else
+                    length = -(frame as ComplexFrameDescription<T>).length;
 
                 instance[frame.name] = <any>read(buffer, frame, offset, this.frame, length);
                 offset += length;
