@@ -273,7 +273,7 @@ export function write(buffer: Buffer, value: any, desc: FrameDescription<any>, f
                     buffer = Buffer.alloc(value.length);
             }
             else if (desc.type == 'buffer')
-                return value as Buffer;
+                return value[desc.name] as Buffer;
 
             if (desc.type == 'buffer')
                 (value as Buffer).copy(buffer, offset);
@@ -456,7 +456,7 @@ export function read(buffer: Buffer, desc: FrameDescription<any>, offset: number
                     throw new Error('inconsistent requested lengths');
 
                 let value: Buffer;
-                if (typeof (length) != 'undefined')
+                if (typeof (length) != 'undefined' && length >= 0)
                     value = buffer.slice(offset, offset + length);
                 else
                     value = buffer.slice(offset);

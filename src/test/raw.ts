@@ -112,7 +112,7 @@ describe('read', function ()
         {
             var expected = 'string12'
             var buffer = Buffer.alloc(8);
-            debugger;
+
             assert.strictEqual(self.write(buffer, expected, { type: 'uint64', name: 'prop' }, null, 0), undefined, 'writing in buffer');
             assert.equal(self.read(buffer, { type: 'uint64', name: 'prop' }, 0, null, 0), expected, 'reading in buffer');
         })
