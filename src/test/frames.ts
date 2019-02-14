@@ -85,7 +85,7 @@ describe('frame', function ()
     {
         var expected: TestType = { length: 10, type: 5, sequenceNumber: 0, raw: Buffer.from([0xff, 0xf5, 0x5f, 0x55]) }
         var protocol = new self.Protocol(frame);
-        debugger;
+
         var buffer = protocol.write(expected);
         assert.deepEqual(buffer, Buffer.from([10, 0, 5, 0, 0xff, 0xf5, 0x5f, 0x55]))
         assert.deepEqual(protocol.read(buffer), expected, 'frame writing and reading');
@@ -118,14 +118,17 @@ describe('subframe', function ()
         }
         catch (e)
         {
+            assert.equal(e.message, 'Unsupported type ' + expected.type)
         }
         try
         {
-            assert.deepEqual(buffer, Buffer.from([17, 0, 3, 10, 0, 1, 0, 66, 117, 102, 102, 101, 114, 46, 102, 114, 111, 109, 40, 91, 48, 120, 102, 102, 44, 32, 48, 120, 102, 53, 44, 32, 48, 120, 53, 102, 44, 32, 48, 120, 53, 53, 93]))
+            debugger;
+            assert.deepEqual(expected, protocol.read(Buffer.from([17, 0, 3, 10, 0, 1, 0, 66, 117, 102, 102, 101, 114, 46, 102, 114, 111, 109, 40, 91, 48, 120, 102, 102, 44, 32, 48, 120, 102, 53, 44, 32, 48, 120, 53, 102, 44, 32, 48, 120, 53, 53, 93])))
             assert.fail('unsupported type still passing');
         }
         catch (e)
         {
+            assert.equal(e.message, 'Unsupported type ' + expected.type)
         }
     })
 })

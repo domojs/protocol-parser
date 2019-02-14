@@ -283,7 +283,7 @@ export function write(buffer: Buffer, value: any, desc: FrameDescription<any>, f
             return buffer;
         case 'subFrame':
             if (!(value[(desc as SubFrameDescription<any, any>).choose.discriminator] in (desc as SubFrameDescription<any, any>).choose.subFrame))
-                throw new Error('Unsupported type');
+                throw new Error('Unsupported type ' + value[(desc as SubFrameDescription<any, any>).choose.discriminator]);
 
             buffer = (desc as SubFrameDescription<any, any>).choose.subFrame[value[(desc as SubFrameDescription<any, any>).choose.discriminator]].write(value[desc.name]);
             if (typeof ((desc as SubFrameDescription<any, any>).length) == 'undefined')
@@ -574,9 +574,12 @@ export class Frame<T>
                 instance[frame.name] = <any>read(buffer, frame, offset, this.frame, subByteOffset);
                 offset += length;
             }
-            else if (type == 'subFrame')
+            else if (frame.type == 'subFrame')
             {
                 instance[frame.name] = <any>{};
+                if (!frame.choose.subFrame[instance[frame.choose.discriminator] as unknown as number])
+                    throw new Error('Unsupported type ' + instance[frame.choose.discriminator]);
+
                 offset = (frame as SubFrameDescription<T, any>).choose.subFrame[instance[(frame as SubFrameDescription<T, any>).choose.discriminator] as any].read(buffer, <any>instance[frame.name], offset)
             }
             else
