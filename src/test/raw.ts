@@ -1,5 +1,5 @@
 ///<reference types="mocha" />
-import * as self from '.'
+import * as self from '..'
 import * as assert from 'assert'
 import 'source-map-support/register'
 
