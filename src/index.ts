@@ -275,10 +275,10 @@ export function write(buffer: Buffer, value: any, desc: FrameDescription<any>, f
             else if (desc.type == 'buffer')
                 return value[desc.name] as Buffer;
 
-            if (desc.type == 'buffer')
-                (value as Buffer).copy(buffer, offset);
-            else
-                buffer.write(value, offset);
+            if (!buffer)
+                return Buffer.from(value[desc.name]);
+
+            buffer.write(value, offset);
 
             return buffer;
         case 'subFrame':
