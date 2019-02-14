@@ -109,5 +109,23 @@ describe('subframe', function ()
         var buffer = protocol.write(expected);
         assert.deepEqual(buffer, Buffer.from([17, 0, 2, 10, 0, 1, 0, 66, 117, 102, 102, 101, 114, 46, 102, 114, 111, 109, 40, 91, 48, 120, 102, 102, 44, 32, 48, 120, 102, 53, 44, 32, 48, 120, 53, 102, 44, 32, 48, 120, 53, 53, 93]))
         assert.deepEqual(protocol.read(buffer), expected, 'frame writing and reading');
+
+        var expected: SuperType = { type: 3, prop1: 17, sub: { length: 10, type: 1, sequenceNumber: 0, message: 'Buffer.from([0xff, 0xf5, 0x5f, 0x55]' } }
+        try
+        {
+            protocol.write(expected);
+            assert.fail('unsupported type still passing');
+        }
+        catch (e)
+        {
+        }
+        try
+        {
+            assert.deepEqual(buffer, Buffer.from([17, 0, 3, 10, 0, 1, 0, 66, 117, 102, 102, 101, 114, 46, 102, 114, 111, 109, 40, 91, 48, 120, 102, 102, 44, 32, 48, 120, 102, 53, 44, 32, 48, 120, 53, 102, 44, 32, 48, 120, 53, 53, 93]))
+            assert.fail('unsupported type still passing');
+        }
+        catch (e)
+        {
+        }
     })
 })
