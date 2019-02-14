@@ -21,5 +21,8 @@
     "mocha": "^5.2.0",
     "source-map-support": "^0.5.10",
     "typescript": "^3.3.3"
+  },
+  "publishConfig": {
+    "access": true
   }
 }
