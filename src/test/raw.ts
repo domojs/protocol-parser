@@ -14,18 +14,35 @@ function readType(type: self.simpleFrameType, length: number)
         it('should read and write from buffer', function ()
         {
             var expected: number = 0;
-            for (let i = 0; i < length; i++)
+            for (let j = 0; j < length; j++)
             {
-                expected += Math.pow(2, i);
+                expected += Math.pow(2, j);
             }
-            var buffer = Buffer.from([0xff, 0xff, 0xff, 0xff]);
+            if (length >= 16)
+                this.timeout(0);
 
-            for (let i = 0; i < 8; i++)
+            var buffer = Buffer.allocUnsafe(Math.ceil(length / 8) + 1);
+            var expectedBuffer = Buffer.allocUnsafe(Math.ceil(length / 8) + 1);
+            for (let x = 0; x < expected; x++)
             {
-                if (i + length < 8 || i == 0)
+                if (length == 32 && x != 0b1001100110011001)
+                    continue;
+
+                expectedBuffer.fill(0);
+                if (length > 8)
+                    expectedBuffer.writeUIntBE(x, 0, length / 8);
+                for (let i = 0; i < 7; i++)
                 {
-                    assert.strictEqual(self.write(buffer, expected, { type: type, name: 'prop' }, null, i / 8), undefined, 'writing in buffer');
-                    assert.deepEqual(self.read(buffer, { type: type, name: 'prop' }, i / 8, null, 0), expected, 'reading ' + i + ' / 8 in buffer');
+                    if (x == 16 && i == 1 && length == 16)
+                        debugger;
+                    buffer.fill(0)
+
+                    assert.strictEqual(self.write(buffer, x, { type: type, name: 'prop' }, null, i / 8), undefined, 'writing in buffer');
+                    if (i == 0 && length > 8)
+                    {
+                        assert.deepStrictEqual(buffer, expectedBuffer, `comparing buffers after write for ${x} (${x.toString(2)})`);
+                    }
+                    assert.deepStrictEqual(self.read(buffer, { type: type, name: 'prop' }, i / 8, null, 0), x, `reading ${i} / 8 in buffer [${buffer.toJSON().data}] for ${x} (${x.toString(2)})`);
                 }
             }
         })
