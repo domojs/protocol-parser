@@ -30,10 +30,13 @@ function readType(type: self.simpleFrameType, length: number)
 
                 expectedBuffer.fill(0);
                 if (length > 8)
-                    expectedBuffer.writeUIntBE(x, 0, length / 8);
+                    if (type.endsWith('LE'))
+                        expectedBuffer.writeUIntLE(x, 0, length / 8);
+                    else
+                        expectedBuffer.writeUIntBE(x, 0, length / 8);
                 for (let i = 0; i < 7; i++)
                 {
-                    if (x == 16 && i == 1 && length == 16)
+                    if (x == 1 && i == 1 && length == 16)
                         debugger;
                     buffer.fill(0)
 
@@ -93,13 +96,9 @@ describe('read', function ()
     readType('uint8', 8)
     readType('uint16', 16)
     readType('uint32', 32)
+    readType('uint16LE', 16)
+    readType('uint32LE', 32)
 
-    // readArrayType('uint2', 2)
-    // readArrayType('uint3', 3)
-    // readArrayType('uint4', 4)
-    // readArrayType('uint5', 5)
-    // readArrayType('uint6', 6)
-    // readArrayType('uint7', 7)
     readArrayType('uint8', 4)
     readArrayType('uint16', 4)
     readArrayType('uint32', 4)

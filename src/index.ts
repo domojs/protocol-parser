@@ -13,7 +13,7 @@ export type float = number;
 export type double = number;
 
 export type subByteFrameType = 'bit' | 'uint2' | 'uint3' | 'uint4' | 'uint5' | 'uint6' | 'uint7';
-export type simpleFrameType = subByteFrameType | 'uint8' | 'uint16' | 'uint32' | 'uint64';
+export type simpleFrameType = subByteFrameType | 'uint8' | 'uint16' | 'uint32' | 'uint16LE' | 'uint32LE' | 'uint64';
 export type complexFrameType = 'string' | 'buffer' | 'uint8[]' | 'uint16[]' | 'uint32[]' | 'uint64[]';;
 export type frameType = simpleFrameType | complexFrameType | 'subFrame' | 'subFrame[]';
 export type frameTypeGetter<T, U extends frameType> = ((instance: T, buffer?: Buffer) => U);
@@ -80,7 +80,9 @@ export function frameTypeLength(type: 'uint7'): 0.875
 export function frameTypeLength(type: 'uint8'): 1
 export function frameTypeLength(type: 'uint8'): 1
 export function frameTypeLength(type: 'uint16'): 2
+export function frameTypeLength(type: 'uint16LE'): 2
 export function frameTypeLength(type: 'uint32'): 4
+export function frameTypeLength(type: 'uint32LE'): 4
 export function frameTypeLength(type: 'uint64'): 8
 export function frameTypeLength(type: complexFrameType | 'subFrame'): -1
 export function frameTypeLength(type: 'uint8'): 1
@@ -106,8 +108,10 @@ export function frameTypeLength(type: frameType)
         case 'uint8':
             return 1;
         case 'uint16':
+        case 'uint16LE':
             return 2;
         case 'uint32':
+        case 'uint32LE':
             return 4;
         case 'uint64':
             return 8;
@@ -264,6 +268,28 @@ export function write(buffer: Buffer, value: any, desc: FrameDescription<any>, f
                 throw new Error('Cross byte value are not supported');
             }
             buffer.writeUInt32BE(value, offset);
+            break;
+        case 'uint16LE':
+            if (offset != floorOffset)
+            {
+                write(buffer, value & 0xFF, Object.assign({}, desc, { type: 'uint8' }), fullFrame, offset)
+                write(buffer, value >> 8, Object.assign({}, desc, { type: 'uint8' }), fullFrame, offset + 1)
+                break;
+                throw new Error('Cross byte value are not supported');
+            }
+            buffer.writeUInt16LE(value, offset);
+            break;
+        case 'uint32LE':
+            if (offset != floorOffset)
+            {
+                let tmpBuffer = Buffer.alloc(4);
+                tmpBuffer.writeUInt32LE(value, 0);
+                write(buffer, tmpBuffer.readUInt16LE(2), Object.assign({}, desc, { type: 'uint16LE' }), fullFrame, offset);
+                write(buffer, tmpBuffer.readUInt16LE(0), Object.assign({}, desc, { type: 'uint16LE' }), fullFrame, offset + 2);
+                break;
+                throw new Error('Cross byte value are not supported');
+            }
+            buffer.writeUInt32LE(value, offset);
             break;
         case 'uint64':
             if (offset != floorOffset)
@@ -642,6 +668,24 @@ export function read(buffer: Buffer, desc: FrameDescription<any>, offset: number
                 return tmpBuffer.readUInt32BE(0);
             }
             return buffer.readUInt32BE(offset);
+        case 'uint16LE':
+            if (offset != floorOffset)
+            {
+                let tmpBuffer = Buffer.alloc(2);
+                tmpBuffer.writeUInt8(read(buffer, Object.assign({}, desc, { type: 'uint8' }), offset, frames, length), 0);
+                tmpBuffer.writeUInt8(read(buffer, Object.assign({}, desc, { type: 'uint8' }), offset + 1, frames, length), 1);
+                return tmpBuffer.readUInt16LE(0);
+            }
+            return buffer.readUInt16LE(offset);
+        case 'uint32LE':
+            if (offset != floorOffset)
+            {
+                let tmpBuffer = Buffer.alloc(4);
+                tmpBuffer.writeUInt16LE(read(buffer, Object.assign({}, desc, { type: 'uint16LE' }), offset + 2, frames, length), 0);
+                tmpBuffer.writeUInt16LE(read(buffer, Object.assign({}, desc, { type: 'uint16LE' }), offset, frames, length), 2);
+                return tmpBuffer.readUInt32LE(0);
+            }
+            return buffer.readUInt32LE(offset);
         case 'uint64':
         case 'buffer':
         case 'string':
