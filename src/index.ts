@@ -700,7 +700,7 @@ export function read(buffer: Buffer, desc: FrameDescription<any>, offset: number
             {
                 length = frameTypeLength(desc['length']);
                 offset += length;
-                length = <number>read(buffer, { type: desc['length'], name: '' }, offset - length, this.frame, subByteOffset);
+                length = <number>read(buffer, { type: desc['length'], name: '' }, offset - length, frames, subByteOffset);
             }
 
             if (expectedLength != length && expectedLength !== 0 && typeof (expectedLength) != 'undefined')
@@ -730,7 +730,7 @@ export function read(buffer: Buffer, desc: FrameDescription<any>, offset: number
             {
                 length = frameTypeLength(desc.length);
                 offset += length;
-                length = <number>read(buffer, { type: desc.length, name: '' }, offset - length, this.frame, subByteOffset);
+                length = <number>read(buffer, { type: desc.length, name: '' }, offset - length, frames, subByteOffset);
             }
 
             if (expectedLength != length && expectedLength !== 0 && typeof (expectedLength) != 'undefined')
@@ -821,7 +821,10 @@ export class Frame<T>
         {
             var type = frame.type;
             if (type instanceof Function)
+            {
                 type = type(instance, buffer);
+                frame = Object.assign({}, frame, { type })
+            }
 
             var length = frameTypeLength(type);
             if (length > -1)
