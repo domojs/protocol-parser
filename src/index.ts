@@ -703,7 +703,7 @@ export function read(buffer: Buffer, desc: FrameDescription<any>, offset: number
                 length = <number>read(buffer, { type: desc['length'], name: '' }, offset - length, frames, subByteOffset);
             }
 
-            if (expectedLength != length && expectedLength !== 0 && typeof (expectedLength) != 'undefined')
+            if (expectedLength !== length && expectedLength !== 0 && typeof (expectedLength) != 'undefined' && expectedLength !== -1)
                 throw new Error('inconsistent requested lengths');
 
             // let value: Buffer;
